@@ -1,0 +1,14 @@
+{
+  "name": "ksu-asset-manager-frontend",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix .. run dev",
+    "build": "npm --prefix .. run build",
+    "start": "npm --prefix .. run start"
+  },
+  "dependencies": {
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  }
+}

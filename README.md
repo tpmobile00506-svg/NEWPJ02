@@ -1,0 +1,127 @@
+# ระบบบริหารจัดการครุภัณฑ์
+
+ระบบทะเบียนครุภัณฑ์สำหรับคณะวิศวกรรมศาสตร์และเทคโนโลยีอุตสาหกรรม มหาวิทยาลัยกาฬสินธุ์ ใช้ Node.js, Next.js/React, PostgreSQL และ Prisma
+
+## โครงสร้างโครงการ
+
+Source มีสองโฟลเดอร์หลัก ส่วน package.json, package-lock.json, README และไฟล์ตั้งค่าที่จำเป็นอยู่ที่ root
+
+```text
+asset-manager/
+├── frontend/                  หน้าจอและ Next.js
+│   ├── app/                   หน้าเว็บและตัวเชื่อม API ของ Next.js
+│   ├── features/              ทะเบียน นำเข้า คำขอ ตรวจนับ รายงาน ผู้ใช้
+│   ├── components/            ส่วนประกอบหน้าจอ
+│   ├── hooks/                 React hooks
+│   ├── services/              ส่งออก Excel และพิมพ์
+│   ├── styles/                CSS และใบอนุญาตของ styles ภายนอก
+│   ├── public/                favicon และไฟล์สาธารณะ
+│   ├── utils/                 ตัวช่วยหน้าจอ
+│   ├── next.config.ts
+│   ├── postcss.config.mjs
+│   └── tsconfig.json
+├── backend/                   API ฐานข้อมูล และกฎธุรกิจ
+│   ├── auth/                  เข้าสู่ระบบและ session
+│   ├── config/                Environment และการตั้งค่า server
+│   ├── contracts/             ชนิดข้อมูลและกฎคำนวณร่วมกับ frontend
+│   ├── db/                    เชื่อม PostgreSQL ผ่าน Prisma
+│   ├── prisma/                Schema, migrations และ seed
+│   ├── routes/                API และไฟล์ต้นฉบับ
+│   ├── services/              กฎธุรกิจ สิทธิ์ และธุรกรรม
+│   ├── imports/               อ่าน Excel ฝั่ง server
+│   ├── storage/               จัดเก็บไฟล์ใน PostgreSQL
+│   ├── scripts/               คำสั่งดูแลระบบและนำเข้าต้นฉบับ
+│   ├── tests/                 ชุดทดสอบ
+│   ├── docs/                  รายงานตรวจโค้ด
+│   ├── data/                  ต้นฉบับส่วนตัวในเครื่อง ไม่ส่งขึ้น Git
+│   └── archive/               สำเนาโค้ดเก่า ไม่ใช้รันระบบปัจจุบัน
+├── package.json
+├── package-lock.json
+└── README.md
+```
+
+`frontend/app/api/` เป็นตัวเชื่อมที่ Next.js ต้องใช้ ส่วนการตรวจสิทธิ์และกฎธุรกิจอยู่ใน backend ทั้งสองฝั่งรันบน Node.js ด้วย origin เดียวกัน ไม่ต้องตั้ง API อีกพอร์ตในการใช้งานปกติ
+
+`node_modules/`, `frontend/.next/`, `backend/generated/` และ cache เป็นไฟล์ที่เครื่องมือสร้าง ไม่ใช่โฟลเดอร์ source เพิ่มเติม
+
+รายละเอียด: [Frontend](frontend/README.md) · [Backend](backend/README.md) · [รายงานตรวจการเปลี่ยนแปลง](backend/docs/CHANGE_AUDIT.md)
+
+## เริ่มใช้งาน
+
+ต้องมี Node.js 22.13 ขึ้นไป, npm และ PostgreSQL ที่เข้าถึงได้ คำสั่งทั้งหมดรันจาก root ของโครงการ เตรียม environment ใน `.env` หรือระบบจัดการ secrets ของผู้ให้บริการ:
+
+```dotenv
+DATABASE_URL=postgresql://USERNAME:PASSWORD@HOST:5432/DATABASE
+FRONTEND_ORIGIN=http://localhost:3000
+ADMIN_EMAIL=admin@example.test
+ADMIN_PASSWORD=REPLACE_WITH_A_NEW_LONG_PASSWORD
+```
+
+ค่าข้างต้นเป็นตัวอย่าง ให้ใช้บัญชีและรหัสผ่านของผู้ดูแลจริง ห้ามนำ `.env` ขึ้น Git หรือวางข้อมูลลับในตัวแปร `NEXT_PUBLIC_*` สำหรับ PostgreSQL ระยะไกลให้ใช้การตั้งค่า TLS ตามผู้ให้บริการ
+
+```bash
+npm ci
+npm run db:generate
+npm run db:deploy
+npm run db:seed
+npm run dev
+```
+
+เปิด [http://localhost:3000](http://localhost:3000) แล้วเข้าสู่ระบบด้วยบัญชี Admin ที่สร้างผ่าน `db:seed` จากนั้นเพิ่มผู้ใช้และบทบาทในระบบ บัญชีผู้ดูแลเริ่มต้นสร้างด้วยคำสั่งที่ระบุชัดเจน ไม่สร้างจากผู้ที่เปิดหน้า login เป็นคนแรก
+
+`db:generate` สร้าง Prisma Client; `db:deploy` ติดตั้ง migrations; `db:seed` เตรียมบัญชีผู้ดูแล หากนำฐานข้อมูลจากระบบก่อนหน้ามาใช้ ต้องตรวจประวัติ migrations และทำ baseline ให้ตรง schema ก่อน
+
+## ข้อมูลต้นฉบับ
+
+ไฟล์ Excel จริงและข้อมูลที่แปลงจากต้นฉบับเก็บไว้ใน `backend/data/` ภายในเครื่อง และไม่รวมใน repository สาธารณะ NEWPJ02 ใช้คำสั่งนี้เมื่อต้องการนำต้นฉบับที่เตรียมไว้เข้าสู่ PostgreSQL:
+
+```bash
+npm run source:seed
+```
+
+ไฟล์ที่นำเข้าจากหน้าเว็บเก็บในตาราง `StoredFile` ของ PostgreSQL พร้อมไฟล์ต้นฉบับและข้อมูลสำหรับตรวจทาน ไม่อาศัยดิสก์ชั่วคราวของ Vercel การนำไฟล์เข้าสู่หน้าตรวจทานยังไม่เพิ่มครุภัณฑ์ลงทะเบียนจนกว่าเจ้าหน้าที่ตรวจและยืนยัน
+
+ต้นฉบับ Word/Excel ที่ผู้ใช้ให้ต้องเก็บสำรองไว้ การจัดโฟลเดอร์และการเผยแพร่โค้ดไม่ใช่คำสั่งลบข้อมูลต้นฉบับ
+
+## การทำงานหลัก
+
+- ทะเบียน 11 คอลัมน์ ค้นหา กรอง เรียงลำดับ ส่งออก Excel และพิมพ์ QR
+- ตรวจทาน Excel แยกหัวกระดาษ เลขหน้า ยอดยก และหัวชุดออกจากยอดทะเบียน โดยเก็บต้นฉบับไว้
+- แยกรหัสช่วงที่แน่นอนเป็นครุภัณฑ์และ QR อิสระ แบ่งล็อตโดยยอดจำนวนและเงินยังเท่าเดิม
+- ส่งคำขอโอนย้าย ซ่อม จำหน่าย และอนุมัติตามลำดับ พร้อมประวัติ
+- ตรวจนับประจำปีและรายงานมูลค่า ประมาณค่าเสื่อมเมื่อข้อมูลวันที่รับและอายุใช้งานครบ
+- ผู้ใช้ 5 กลุ่ม: เจ้าหน้าที่ หัวหน้าสำนักงาน รองฝ่ายบริการ คณบดี และ Admin
+
+สายอนุมัติเริ่มต้นคือ หัวหน้าสำนักงาน → รองฝ่ายบริการ → คณบดี ผู้ดูแลปรับสายอนุมัติได้ ส่วนคำขอที่ส่งแล้วเก็บสายอนุมัติ ณ วันที่ส่ง Admin จัดการบัญชีและทะเบียน แต่ไม่อนุมัติแทนผู้บริหาร
+
+จำนวนเงินในฐานข้อมูลเก็บเป็นจำนวนเต็มหน่วยสตางค์ (`BigInt`) และแปลงเป็นตัวเลขที่ปลอดภัยก่อนส่ง JSON ตัวอย่าง 400 ตัว รวม 370,000 บาท แบ่งชำรุด 189 ตัวเป็น 174,825 บาท และปกติ 211 ตัวเป็น 195,175 บาท รายการแม่ของการแบ่งล็อตเก็บเป็นประวัติเพื่อไม่ให้นับเงินซ้ำ
+
+## ตรวจสอบและเผยแพร่
+
+```bash
+npm run typecheck
+npm run build
+npm start
+```
+
+`build` สร้างแอปและ Prisma Client โดยไม่เขียน schema หรือข้อมูลลงฐานข้อมูล ใช้ `db:deploy`, `db:seed` และ `source:seed` เป็นขั้นตอนแยก
+
+Repository สำหรับรุ่นจัดโครงสร้างใหม่นี้คือ [NEWPJ02](https://github.com/tpmobile00506-svg/NEWPJ02) การ push Git ไม่ได้ยืนยันว่าเว็บออนไลน์แล้ว ผู้ให้บริการต้องเชื่อม repository, ตั้งค่า PostgreSQL/environment, ติดตั้ง migrations และ build สำเร็จ
+
+ตั้ง Vercel Root Directory เป็น `frontend` และเปิด Include source files outside of the Root Directory ใช้ `frontend/vercel.json` ซึ่งติดตั้งและ build ผ่าน package.json ที่ root ตั้ง `DATABASE_URL` และ `FRONTEND_ORIGIN` ของโดเมนจริงใน Environment Variables
+อัปโหลด XLSX ได้ไม่เกิน 4 MB ต่อไฟล์ เพื่อให้ตรงกับขนาด request ของ Vercel
+
+ทดสอบบน PostgreSQL แยกใน Windows ที่ติดตั้ง PostgreSQL 18:
+
+```bash
+node backend/scripts/test-postgres.mjs
+node backend/scripts/with-test-env.mjs node_modules/prisma/build/index.js migrate deploy --config backend/prisma/prisma.config.ts
+node backend/scripts/with-test-env.mjs node_modules/tsx/dist/cli.mjs backend/prisma/seed.ts
+node backend/scripts/with-test-env.mjs node_modules/tsx/dist/cli.mjs backend/scripts/seed-source.ts
+node backend/scripts/with-test-env.mjs node_modules/next/dist/bin/next start frontend -p 5174 -H 127.0.0.1
+```
+
+เปิด terminal อีกอันแล้วรัน `node backend/scripts/with-test-env.mjs backend/tests/critical-workflows.mjs` เมื่อเสร็จให้หยุด server และรัน `node backend/scripts/test-postgres.mjs stop` คำสั่ง seed-source ใช้เฉพาะเครื่องที่มีต้นฉบับส่วนตัว; clone สาธารณะข้ามคำสั่งนี้ได้
+
+ก่อนเปิดใช้งานจริง ให้ตรวจ login, ผู้ใช้ทั้ง 5 บทบาท, การสร้างทะเบียน, แบ่งล็อต, สายอนุมัติ และอัปโหลด/ดาวน์โหลดบน deployment ที่ใช้ฐานข้อมูลเป้าหมาย ชุดทดสอบที่เขียนข้อมูลต้องใช้ฐานข้อมูลทดสอบแยกจากทะเบียนจริง ผลของชุดทดสอบเก่าที่ใช้ D1/ChatGPT auth ไม่ใช่หลักฐานว่ารุ่น PostgreSQL/session ผ่านแล้ว ดูขอบเขตและสถานะการตรวจในรายงานด้านบน
+
