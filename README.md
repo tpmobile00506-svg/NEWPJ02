@@ -109,6 +109,7 @@ npm start
 Repository สำหรับรุ่นจัดโครงสร้างใหม่นี้คือ [NEWPJ02](https://github.com/tpmobile00506-svg/NEWPJ02) การ push Git ไม่ได้ยืนยันว่าเว็บออนไลน์แล้ว ผู้ให้บริการต้องเชื่อม repository, ตั้งค่า PostgreSQL/environment, ติดตั้ง migrations และ build สำเร็จ
 
 ตั้ง Vercel Root Directory เป็น `frontend` และเปิด Include source files outside of the Root Directory ใช้ `frontend/vercel.json` ซึ่งติดตั้งและ build ผ่าน package.json ที่ root ตั้ง `DATABASE_URL` และ `FRONTEND_ORIGIN` ของโดเมนจริงใน Environment Variables
+ปิด Skip deployments when there are no changes to the root directory เพื่อให้การแก้ `backend/` สร้าง deployment ใหม่ด้วย
 อัปโหลด XLSX ได้ไม่เกิน 4 MB ต่อไฟล์ เพื่อให้ตรงกับขนาด request ของ Vercel
 
 ทดสอบบน PostgreSQL แยกใน Windows ที่ติดตั้ง PostgreSQL 18:
