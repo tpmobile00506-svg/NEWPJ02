@@ -1,6 +1,3 @@
-import { fileURLToPath } from 'node:url';
-import { config } from 'dotenv';
-config({ path: fileURLToPath(new URL('../../.env', import.meta.url)), quiet: true });
 const origin = process.env.FRONTEND_ORIGIN || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '') || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') || 'http://localhost:3000';
 export const settings = {
   databaseUrl: process.env.DATABASE_URL?.trim().replace(/^(?:"(.*)"|'(.*)')$/, '$1$2') || '',

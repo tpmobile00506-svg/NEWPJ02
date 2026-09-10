@@ -6,14 +6,14 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "next dev frontend",
+    "dev": "node --env-file-if-exists=.env node_modules/next/dist/bin/next dev frontend",
     "build": "npm run db:generate && next build frontend",
-    "start": "next start frontend",
+    "start": "node --env-file-if-exists=.env node_modules/next/dist/bin/next start frontend",
     "postinstall": "prisma generate --config backend/prisma/prisma.config.ts",
     "db:generate": "prisma generate --config backend/prisma/prisma.config.ts",
     "db:deploy": "prisma migrate deploy --config backend/prisma/prisma.config.ts",
-    "db:seed": "tsx backend/prisma/seed.ts",
-    "source:seed": "tsx backend/scripts/seed-source.ts",
+    "db:seed": "node --env-file-if-exists=.env --import tsx backend/prisma/seed.ts",
+    "source:seed": "node --env-file-if-exists=.env --import tsx backend/scripts/seed-source.ts",
     "typecheck": "tsc --noEmit -p frontend/tsconfig.json && tsc --noEmit -p backend/tsconfig.json",
     "test": "node backend/tests/critical-workflows.mjs"
   },
